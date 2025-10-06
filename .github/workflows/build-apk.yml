@@ -12,31 +12,114 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     
-    - name: Install dependencies
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          git zip unzip openjdk-17-jdk python3-pip \
+          autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libncursesw5-dev libtinfo6 \
+          cmake libffi-dev libssl-dev \
+          build-essential libltdl-dev \
+          ccache
+    
+    - name: Set up Java environment
+      run: |
+        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+        echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
+    
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install buildozer cython
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        
-    - name: Setup Android SDK
+        pip install buildozer cython kivy
+    
+    - name: Cache Buildozer global directory
+      uses: actions/cache@v3
+      with:
+        path: ~/.buildozer
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+    
+    - name: Cache Buildozer dependencies
+      uses: actions/cache@v3
+      with:
+        path: .buildozer
+        key: ${{ runner.os }}-buildozer-deps-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-deps-
+    
+    - name: Build APK with Buildozer
       run: |
-        mkdir -p ~/.buildozer/android
-        cd ~/.buildozer/android
+        # 确保buildozer.spec存在
+        if [ ! -f "buildozer.spec" ]; then
+          echo "Error: buildozer.spec not found!"
+          exit 1
+        fi
         
-    - name: Build with Buildozer
-      run: |
+        # 构建APK
         buildozer android debug
+    
+    - name: Find APK file
+      id: find_apk
+      run: |
+        APK_PATH=$(find . -name "*.apk" -type f | head -1)
+        if [ -z "$APK_PATH" ]; then
+          echo "Error: No APK file found!"
+          exit 1
+        fi
+        echo "APK found at: $APK_PATH"
+        echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
         
-    - name: Upload APK
+        # 获取APK文件名
+        APK_NAME=$(basename "$APK_PATH")
+        echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
+    
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: android-apk
-        path: bin/*.apk
+        path: ${{ steps.find_apk.outputs.apk_path }}
+        retention-days: 30
+    
+    - name: Upload APK as release asset (if tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ steps.find_apk.outputs.apk_path }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build summary
+      run: |
+        echo "## 🎉 APK构建成功!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**APK文件:** ${{ steps.find_apk.outputs.apk_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**文件路径:** ${{ steps.find_apk.outputs.apk_path }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📱 如何下载APK:" >> $GITHUB_STEP_SUMMARY
+        echo "1. 点击页面上方的 **Artifacts** 部分" >> $GITHUB_STEP_SUMMARY
+        echo "2. 下载 **android-apk** 文件" >> $GITHUB_STEP_SUMMARY
+        echo "3. 解压下载的zip文件获取APK" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 APK信息:" >> $GITHUB_STEP_SUMMARY
+        if [ -f "${{ steps.find_apk.outputs.apk_path }}" ]; then
+          APK_SIZE=$(du -h "${{ steps.find_apk.outputs.apk_path }}" | cut -f1)
+          echo "**文件大小:** $APK_SIZE" >> $GITHUB_STEP_SUMMARY
+        fi
