@@ -73,6 +73,7 @@ jobs:
         
         # 创建SDK目录结构
         mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+        mkdir -p $ANDROID_SDK_ROOT/tools/bin
         
         # 下载并安装Android SDK命令行工具
         cd $ANDROID_SDK_ROOT/cmdline-tools
@@ -80,8 +81,11 @@ jobs:
         unzip -q commandlinetools-linux-9477386_latest.zip
         mv cmdline-tools latest
         
+        # 创建兼容性链接，让Buildozer能找到sdkmanager
+        ln -sf $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager $ANDROID_SDK_ROOT/tools/bin/sdkmanager
+        
         # 更新PATH
-        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/tools/bin
         
         # 自动接受所有Android SDK许可证
         yes | sdkmanager --licenses || true
