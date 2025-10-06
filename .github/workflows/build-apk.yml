@@ -65,6 +65,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-buildozer-deps-
     
+    - name: Accept Android SDK licenses
+      run: |
+        # 自动接受所有Android SDK许可证
+        yes | sdkmanager --licenses || true
+        
     - name: Build APK with Buildozer
       run: |
         # 确保buildozer.spec存在
@@ -72,6 +77,10 @@ jobs:
           echo "Error: buildozer.spec not found!"
           exit 1
         fi
+        
+        # 设置环境变量自动接受许可证
+        export ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
         
         # 构建APK
         buildozer android debug
