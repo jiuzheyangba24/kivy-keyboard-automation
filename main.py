@@ -8,10 +8,24 @@ from kivy.uix.slider import Slider
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.utils import get_color_from_hex
+from kivy.core.text import LabelBase
 import threading
 import time
 import traceback
 import sys
+import os
+
+# 注册中文字体
+try:
+    # 尝试注册系统中文字体
+    if os.name == 'nt':  # Windows
+        LabelBase.register(name='Chinese', fn_regular='C:/Windows/Fonts/msyh.ttc')
+    else:  # Android或其他系统
+        # 使用Kivy默认字体，应该支持中文
+        pass
+except Exception as e:
+    print(f"字体注册失败: {e}")
+    # 继续使用默认字体
 
 # 移动端键盘模拟器（简化版）
 class MobileKeyboardController:
@@ -56,6 +70,7 @@ class KeyboardSimulatorApp(App):
             title = Label(
                 text='ikun牌键盘自动化工具',
                 font_size='24sp',
+                font_name='Chinese' if os.name == 'nt' else 'Roboto',
                 color=get_color_from_hex('#2c3e50'),
                 size_hint_y=None,
                 height=60
@@ -68,6 +83,7 @@ class KeyboardSimulatorApp(App):
             input_label = Label(
                 text='输入要自动输入的文本:',
                 font_size='16sp',
+                font_name='Chinese' if os.name == 'nt' else 'Roboto',
                 color=get_color_from_hex('#34495e'),
                 size_hint_y=None,
                 height=30,
@@ -93,6 +109,7 @@ class KeyboardSimulatorApp(App):
             repeat_label = Label(
                 text='重复次数:',
                 font_size='16sp',
+                font_name='Chinese' if os.name == 'nt' else 'Roboto',
                 color=get_color_from_hex('#34495e'),
                 size_hint_x=None,
                 width=100
@@ -125,6 +142,7 @@ class KeyboardSimulatorApp(App):
             self.start_button = Button(
                 text='开始模拟',
                 font_size='18sp',
+                font_name='Chinese' if os.name == 'nt' else 'Roboto',
                 background_color=get_color_from_hex('#27ae60'),
                 color=(1, 1, 1, 1)
             )
@@ -134,6 +152,7 @@ class KeyboardSimulatorApp(App):
             self.stop_button = Button(
                 text='停止模拟',
                 font_size='18sp',
+                font_name='Chinese' if os.name == 'nt' else 'Roboto',
                 background_color=get_color_from_hex('#e74c3c'),
                 color=(1, 1, 1, 1),
                 disabled=True
@@ -147,6 +166,7 @@ class KeyboardSimulatorApp(App):
             self.status_label = Label(
                 text='状态: 就绪',
                 font_size='14sp',
+                font_name='Chinese' if os.name == 'nt' else 'Roboto',
                 color=get_color_from_hex('#7f8c8d'),
                 size_hint_y=None,
                 height=40
@@ -157,6 +177,7 @@ class KeyboardSimulatorApp(App):
             log_label = Label(
                 text='输出日志:',
                 font_size='16sp',
+                font_name='Chinese' if os.name == 'nt' else 'Roboto',
                 color=get_color_from_hex('#34495e'),
                 size_hint_y=None,
                 height=30,
