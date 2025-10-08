@@ -51,138 +51,139 @@ class KeyboardSimulatorApp(App):
             main_layout = BoxLayout(orientation='vertical', padding=20, spacing=15)
             
             self.safe_log("应用界面初始化开始")
+            
+            # 标题
+            title = Label(
+                text='ikun牌键盘自动化工具',
+                font_size='24sp',
+                color=get_color_from_hex('#2c3e50'),
+                size_hint_y=None,
+                height=60
+            )
+            main_layout.add_widget(title)
         
-        # 标题
-        title = Label(
-            text='ikun牌键盘自动化工具',
-            font_size='24sp',
-            color=get_color_from_hex('#2c3e50'),
-            size_hint_y=None,
-            height=60
-        )
-        main_layout.add_widget(title)
+            # 文本输入区域
+            input_layout = BoxLayout(orientation='vertical', spacing=10)
+            
+            input_label = Label(
+                text='输入要自动输入的文本:',
+                font_size='16sp',
+                color=get_color_from_hex('#34495e'),
+                size_hint_y=None,
+                height=30,
+                halign='left'
+            )
+            input_label.bind(size=input_label.setter('text_size'))
+            input_layout.add_widget(input_label)
+            
+            self.text_input = TextInput(
+                multiline=True,
+                hint_text='请输入要自动输入的文本...',
+                font_size='14sp',
+                size_hint_y=None,
+                height=150
+            )
+            input_layout.add_widget(self.text_input)
+            
+            main_layout.add_widget(input_layout)
         
-        # 文本输入区域
-        input_layout = BoxLayout(orientation='vertical', spacing=10)
+            # 重复次数设置
+            repeat_layout = BoxLayout(orientation='horizontal', spacing=10, size_hint_y=None, height=50)
+            
+            repeat_label = Label(
+                text='重复次数:',
+                font_size='16sp',
+                color=get_color_from_hex('#34495e'),
+                size_hint_x=None,
+                width=100
+            )
+            repeat_layout.add_widget(repeat_label)
+            
+            self.repeat_slider = Slider(
+                min=1,
+                max=100,
+                value=1,
+                step=1
+            )
+            repeat_layout.add_widget(self.repeat_slider)
+            
+            self.repeat_value_label = Label(
+                text='1',
+                font_size='16sp',
+                color=get_color_from_hex('#3498db'),
+                size_hint_x=None,
+                width=50
+            )
+            self.repeat_slider.bind(value=self.update_repeat_label)
+            repeat_layout.add_widget(self.repeat_value_label)
+            
+            main_layout.add_widget(repeat_layout)
         
-        input_label = Label(
-            text='输入要自动输入的文本:',
-            font_size='16sp',
-            color=get_color_from_hex('#34495e'),
-            size_hint_y=None,
-            height=30,
-            halign='left'
-        )
-        input_label.bind(size=input_label.setter('text_size'))
-        input_layout.add_widget(input_label)
+            # 控制按钮
+            button_layout = BoxLayout(orientation='horizontal', spacing=15, size_hint_y=None, height=60)
+            
+            self.start_button = Button(
+                text='开始模拟',
+                font_size='18sp',
+                background_color=get_color_from_hex('#27ae60'),
+                color=(1, 1, 1, 1)
+            )
+            self.start_button.bind(on_press=self.start_simulation)
+            button_layout.add_widget(self.start_button)
+            
+            self.stop_button = Button(
+                text='停止模拟',
+                font_size='18sp',
+                background_color=get_color_from_hex('#e74c3c'),
+                color=(1, 1, 1, 1),
+                disabled=True
+            )
+            self.stop_button.bind(on_press=self.stop_simulation)
+            button_layout.add_widget(self.stop_button)
+            
+            main_layout.add_widget(button_layout)
         
-        self.text_input = TextInput(
-            multiline=True,
-            hint_text='请输入要自动输入的文本...',
-            font_size='14sp',
-            size_hint_y=None,
-            height=150
-        )
-        input_layout.add_widget(self.text_input)
-        
-        main_layout.add_widget(input_layout)
-        
-        # 重复次数设置
-        repeat_layout = BoxLayout(orientation='horizontal', spacing=10, size_hint_y=None, height=50)
-        
-        repeat_label = Label(
-            text='重复次数:',
-            font_size='16sp',
-            color=get_color_from_hex('#34495e'),
-            size_hint_x=None,
-            width=100
-        )
-        repeat_layout.add_widget(repeat_label)
-        
-        self.repeat_slider = Slider(
-            min=1,
-            max=100,
-            value=1,
-            step=1
-        )
-        repeat_layout.add_widget(self.repeat_slider)
-        
-        self.repeat_value_label = Label(
-            text='1',
-            font_size='16sp',
-            color=get_color_from_hex('#3498db'),
-            size_hint_x=None,
-            width=50
-        )
-        self.repeat_slider.bind(value=self.update_repeat_label)
-        repeat_layout.add_widget(self.repeat_value_label)
-        
-        main_layout.add_widget(repeat_layout)
-        
-        # 控制按钮
-        button_layout = BoxLayout(orientation='horizontal', spacing=15, size_hint_y=None, height=60)
-        
-        self.start_button = Button(
-            text='开始模拟',
-            font_size='18sp',
-            background_color=get_color_from_hex('#27ae60'),
-            color=(1, 1, 1, 1)
-        )
-        self.start_button.bind(on_press=self.start_simulation)
-        button_layout.add_widget(self.start_button)
-        
-        self.stop_button = Button(
-            text='停止模拟',
-            font_size='18sp',
-            background_color=get_color_from_hex('#e74c3c'),
-            color=(1, 1, 1, 1),
-            disabled=True
-        )
-        self.stop_button.bind(on_press=self.stop_simulation)
-        button_layout.add_widget(self.stop_button)
-        
-        main_layout.add_widget(button_layout)
-        
-        # 状态显示
-        self.status_label = Label(
-            text='状态: 就绪',
-            font_size='14sp',
-            color=get_color_from_hex('#7f8c8d'),
-            size_hint_y=None,
-            height=40
-        )
-        main_layout.add_widget(self.status_label)
-        
-        # 输出日志
-        log_label = Label(
-            text='输出日志:',
-            font_size='16sp',
-            color=get_color_from_hex('#34495e'),
-            size_hint_y=None,
-            height=30,
-            halign='left'
-        )
-        log_label.bind(size=log_label.setter('text_size'))
-        main_layout.add_widget(log_label)
-        
-        self.log_output = TextInput(
-            multiline=True,
-            readonly=True,
-            font_size='12sp',
-            size_hint_y=None,
-            height=150
-        )
-        main_layout.add_widget(self.log_output)
+            # 状态显示
+            self.status_label = Label(
+                text='状态: 就绪',
+                font_size='14sp',
+                color=get_color_from_hex('#7f8c8d'),
+                size_hint_y=None,
+                height=40
+            )
+            main_layout.add_widget(self.status_label)
+            
+            # 输出日志
+            log_label = Label(
+                text='输出日志:',
+                font_size='16sp',
+                color=get_color_from_hex('#34495e'),
+                size_hint_y=None,
+                height=30,
+                halign='left'
+            )
+            log_label.bind(size=log_label.setter('text_size'))
+            main_layout.add_widget(log_label)
+            
+            self.log_output = TextInput(
+                multiline=True,
+                readonly=True,
+                font_size='12sp',
+                size_hint_y=None,
+                height=150
+            )
+            main_layout.add_widget(self.log_output)
         
             self.safe_log("应用界面初始化完成")
             return main_layout
         except Exception as e:
-            self.safe_log(f"界面构建错误: {e}")
+            self.safe_log(f"界面构建失败: {str(e)}")
+            self.safe_log(f"错误详情: {traceback.format_exc()}")
             print(f"界面构建错误: {e}")
             print(traceback.format_exc())
             # 返回一个简单的错误界面
             error_layout = BoxLayout(orientation='vertical')
-            error_label = Label(text=f'应用启动失败: {str(e)}')
+            error_label = Label(text=f'界面构建错误: {str(e)}')
             error_layout.add_widget(error_label)
             return error_layout
     
