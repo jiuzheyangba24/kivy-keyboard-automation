@@ -34,16 +34,10 @@ jobs:
         sudo apt-get install -y \
           git zip unzip openjdk-17-jdk python3-pip \
           autoconf libtool pkg-config zlib1g-dev \
-          libncurses5-dev libncursesw5-dev \
+          libncurses5-dev libncursesw5-dev libtinfo5 \
           cmake libffi-dev libssl-dev \
           build-essential libltdl-dev \
           ccache
-        
-        # 尝试安装libtinfo5，如果失败则使用替代方案
-        sudo apt-get install -y libtinfo5 || \
-        sudo apt-get install -y libtinfo6 || \
-        sudo apt-get install -y libncurses6 || \
-        echo "Warning: Could not install libtinfo5, continuing with available libraries"
     
     - name: Set up Java environment
       run: |
@@ -54,9 +48,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         pip install --upgrade cython==0.29.33
-        pip install buildozer
-        pip install kivy[base]
-        pip install pyjnius plyer
+        pip install buildozer==1.4.0
+        pip install python-for-android==2023.6.11
+        pip install kivy==2.1.0
+        pip install pyjnius==1.4.2 plyer==2.1.0
         pip install colorama appdirs sh jinja2 six
         
         # 验证安装
