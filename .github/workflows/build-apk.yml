@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     
     steps:
     - name: Checkout code
@@ -34,10 +34,16 @@ jobs:
         sudo apt-get install -y \
           git zip unzip openjdk-17-jdk python3-pip \
           autoconf libtool pkg-config zlib1g-dev \
-          libncurses5-dev libncursesw5-dev libtinfo5 \
+          libncurses5-dev libncursesw5-dev \
           cmake libffi-dev libssl-dev \
           build-essential libltdl-dev \
           ccache
+        
+        # 尝试安装libtinfo5，如果失败则使用替代方案
+        sudo apt-get install -y libtinfo5 || \
+        sudo apt-get install -y libtinfo6 || \
+        sudo apt-get install -y libncurses6 || \
+        echo "Warning: Could not install libtinfo5, continuing with available libraries"
     
     - name: Set up Java environment
       run: |
