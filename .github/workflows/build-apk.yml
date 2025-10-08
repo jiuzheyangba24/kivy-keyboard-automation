@@ -104,6 +104,10 @@ jobs:
         fi
         
         unzip -q commandlinetools-linux-9477386_latest.zip
+        # 如果latest目录已存在，先删除它
+        if [ -d "latest" ]; then
+          rm -rf latest
+        fi
         mv cmdline-tools latest
         rm commandlinetools-linux-9477386_latest.zip
         
